@@ -40,7 +40,7 @@ PART_SWAP="swap"
 PART_ROOT="rpool"
 
 # How much swap per disk?
-SWAPSIZE=2G
+SWAPSIZE=32G
 
 # The type of virtual device for boot and root. If kept empty, the disks will
 # be joined (two 1T disks will give you ~2TB of data). Other valid options are
@@ -64,7 +64,7 @@ ZFS_ROOT_VOL="nixos"
 ROOTPW=''
 
 # Do you want impermanence? In that case set this to 1. Not yes, not hai, 1.
-IMPERMANENCE=0
+IMPERMANENCE=1
 
 # If IMPERMANENCE is 1, this will be the name of the empty snapshots
 EMPTYSNAP="SYSINIT"
@@ -151,7 +151,7 @@ zfs create -o mountpoint=/     ${ZFS_ROOT}/${ZFS_ROOT_VOL}
 
 # Create datasets (subvolumes) in the root dataset
 zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/home
-(( $IMPERMANENCE )) && zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/keep || true
+(( $IMPERMANENCE )) && zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/persist || true
 zfs create -o atime=off ${ZFS_ROOT}/${ZFS_ROOT_VOL}/nix
 zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/root
 zfs create ${ZFS_ROOT}/${ZFS_ROOT_VOL}/usr
@@ -288,7 +288,7 @@ then
 
 	tee -a ${TMPFILE} <<EOF
   fileSystems."/etc/nixos" =
-    { device = "/keep/etc/nixos";
+    { device = "/persist/etc/nixos";
       fsType = "none";
       options = [ "bind" ];
     };
@@ -311,9 +311,9 @@ EOF
 if (( $IMPERMANENCE ))
 then
 	# This is where we copy the config files and mount the bind
-	install -d -m 0755 /mnt/keep/etc
-	cp -a /mnt/etc/nixos /mnt/keep/etc/
-	mount -o bind /mnt/keep/etc/nixos /mnt/etc/nixos
+	install -d -m 0755 /mnt/persist/etc
+	cp -a /mnt/etc/nixos /mnt/persist/etc/
+	mount -o bind /mnt/persist/etc/nixos /mnt/etc/nixos
 fi
 
 set +x
